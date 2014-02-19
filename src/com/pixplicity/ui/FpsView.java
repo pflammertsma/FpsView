@@ -33,7 +33,7 @@ public class FpsView extends TextView {
 				} else {
 					fps = getFps();
 				}
-				if (mFpsHistory.size() > HISTORY_SIZE) {
+				if (mFpsHistory.size() > mHistorySize) {
 					mFpsHistory.removeFirst();
 				}
 				Log.d("FpsView", "history: " + fps);
@@ -44,14 +44,14 @@ public class FpsView extends TextView {
 
 	private static final double FPS_WEIGHT_RATE = 1d / 60;
 	private static final double FPS_WEIGHT_RATIO = 2d / 60;
-	protected static final int HISTORY_SIZE = 30;
+	protected static final int DEFAULT_HISTORY_SIZE = 30;
 
 	private final NumberFormat mFormatter = DecimalFormat.getInstance(Locale.ENGLISH);
 	{
-		mFormatter.setMinimumFractionDigits(0);
-		mFormatter.setMaximumFractionDigits(0);
+		setFractionDigits(0);
 	}
 
+	private int mHistorySize = DEFAULT_HISTORY_SIZE;
 	private double mFpsWeightRatio = 1d;
 	private long mLastFrame;
 	private double mMsPerFrame;
@@ -103,11 +103,11 @@ public class FpsView extends TextView {
 		}
 		mMsPerFrame = mMsPerFrame * (1.0d - mFpsWeightRatio) + duration;
 		mLastFrame = System.currentTimeMillis();
-		int startIndex = HISTORY_SIZE - mFpsHistory.size();
-		float width = (float) _canvas.getWidth() / (float) HISTORY_SIZE;
+		int startIndex = mHistorySize - mFpsHistory.size();
+		float width = (float) _canvas.getWidth() / (float) mHistorySize;
 		mRect.bottom = _canvas.getHeight();
 		synchronized (mFpsHistory) {
-			for (int x = startIndex; x < HISTORY_SIZE; x++) {
+			for (int x = startIndex; x < mHistorySize; x++) {
 				Double fps = Math.max(0, Math.min(60, mFpsHistory.get(x - startIndex)));
 				double fpsWarn = Math.max(0, fps - 20);
 				double r = Math.pow((40d - fpsWarn) / 40d, 0.5);
@@ -190,6 +190,15 @@ public class FpsView extends TextView {
 			mFpsHistoryTask.cancel();
 			mFpsHistoryTask = null;
 		}
+	}
+
+	public void setHistorySize(int historySize) {
+		mHistorySize = historySize;
+	}
+
+	public void setFractionDigits(int fractionDigits) {
+		mFormatter.setMinimumFractionDigits(fractionDigits);
+		mFormatter.setMaximumFractionDigits(fractionDigits);
 	}
 
 }
